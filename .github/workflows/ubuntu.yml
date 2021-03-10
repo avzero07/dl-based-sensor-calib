@@ -1,6 +1,6 @@
 name: test-workflow-ubuntu
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
@@ -19,8 +19,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        
-        include: 
+
+        include:
         - os: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -43,9 +43,9 @@ jobs:
       - name: Install Python Dependencies
         run: |
           cd deps
-          pip3 install -r requirements.txt 
+          pip3 install -r requirements.txt
 
-      - name: Run Util Tests
+      - name: Run Tests
         run: |
           cd test
           python3 -m pytest -vv
