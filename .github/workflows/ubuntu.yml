@@ -47,5 +47,4 @@ jobs:
 
       - name: Run Tests
         run: |
-          cd test
           python3 -m pytest -vv
