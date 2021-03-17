@@ -6,6 +6,7 @@ import sys
 import os
 import torch
 import pandas as pd
+from PIL import Image
 
 def check_dir(dir_path):
     if not os.path.isdir(dir_path):
@@ -60,6 +61,9 @@ class CarDataset(torch.utils.data.Dataset):
             #TODO: Dealing with NaN should happen around here
             self.label_frames.append(working_frame)
 
+        # Run Validate To Catch any Error
+        self.validate()
+
     def __len__(self):
         return self.validate()
 
@@ -103,13 +107,14 @@ class CarDataset(torch.utils.data.Dataset):
         helps quickly locate and item from the dataset.
         '''
         offset = 0
-        for folder_idx in len(self.image_locations):
+        for folder_idx in range(len(self.image_locations)):
             len_in_folder = len(self.image_locations[folder_idx])
-            if idx <= len_in_folder:
+            if idx < len_in_folder:
                 # Required Index is Here!
                 sub_idx = idx - offset
-                return (folder_idx,)
-            offset+=len_in_folder - 1
+                return (folder_idx,sub_idx)
+            offset+=len_in_folder
+            idx -= offset
 
         raise DatasetError(("Index {} Out of Bounds in dataset of size"
                 " {}").format(idx,len(self)))

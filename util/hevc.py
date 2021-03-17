@@ -21,7 +21,8 @@ def gen_ffmpeg_command(ip_file_path,fps,op_dir=None):
     else:
         op_dir_name = "{}".format(op_dir)
 
-    op_file_pattern = "{}_%03d.jpg".format(file_name)
+    # TODO: The pattern affects sorting later, just to be mindful!
+    op_file_pattern = "{}_%04d.jpg".format(file_name)
     op_dir = os.path.join(os.path.split(ip_file_path)[0],op_dir_name,op_file_pattern)
     ffmpeg_command = "ffmpeg -r {} -i {} -qscale:v 2 {}".format(fps,ip_file_path
                             ,op_dir)
