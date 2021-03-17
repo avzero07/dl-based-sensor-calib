@@ -36,24 +36,29 @@ class CarDataset(torch.utils.data.Dataset):
         for folder in image_folder_list:
             folder_index += 1
             check_dir(folder)
-            # If they do, populate self.image_locations
+            # If they do, create sub_list
+            self.image_locations.append(list())
+
+            # populate self.image_locations
             os.chdir(folder)
             work_list = sorted(os.listdir())
             for item in work_list:
                 if '.jpg' not in item: # TODO: Better filters?
                     work_list.remove(item)
                 # Get Full Path to Image and append
-                self.image_locations[0].append(os.path.join(folder,item))
+                self.image_locations[folder_index].append(os.path.join(folder,item))
+            # Head back upto root_dir
+            os.chdir(root_dir)
 
         # Iterate through Label Files and Check if they Exist
         label_file_index = -1
-        for label_file in self.label_locations:
+        for label_file in label_file_list:
             label_file_index += 1
             check_file(label_file)
             # If File Exists, Read into self.label_frames
             working_frame = pd.read_csv(label_file,sep=' ',names=['pitch','yaw'])
             #TODO: Dealing with NaN should happen around here
-            self.label_frames[label_file_index].append(working_frame)
+            self.label_frames.append(working_frame)
 
     def __len__(self):
         return self.validate()
@@ -113,3 +118,4 @@ class DatasetError(Exception):
     def __init__(self,message="Problem loading data!"):
         self.message = message
         super().__init__(self.message)
+

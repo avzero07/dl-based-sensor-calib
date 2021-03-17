@@ -84,7 +84,7 @@ def main(args):
     if len(args)<1:
         logging.error("Insufficient Arguments! Requires path to root"
                       "containing HEVC files.")
-        sys.exit(0)
+        sys.exit(1)
 
     # Move into Root Dir
     os.chdir(args[0])
@@ -108,7 +108,7 @@ def main(args):
     if len(hevc_manifest) < 1:
         logging.error("Empty Manifest! No HEVC files in"
                 " {}".format(rrot_dir))
-        sys.exit(0)
+        sys.exit(1)
 
     logging.debug("Manifest Generated! Concurrent Parallel Execution!")
 
