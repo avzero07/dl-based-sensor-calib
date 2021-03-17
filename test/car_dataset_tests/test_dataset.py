@@ -40,3 +40,6 @@ def test_check_file(test_file,outcome):
     except DatasetError as e:
         assert not outcome, "Expected {} but not found!".format(test_file)
         assert "Does not exist" in e.message, "Error Message Seems Off!"
+
+def test_cardataset_init():
+    pass
