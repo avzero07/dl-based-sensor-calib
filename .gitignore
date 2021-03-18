@@ -128,7 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Dummy Dirs
+# Don't Include
 *_Frames
 *dummy*
 *.log
+*tags*

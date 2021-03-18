@@ -16,17 +16,17 @@ from hevc import gen_ffmpeg_command,run_ffmpeg,get_time_string,create_op_dir
         "ip_file_path,fps,op_dir,outcome",
         [(os.path.join("abc.hevc"),15,"test","ffmpeg -r 15 -i"
                 " abc.hevc -qscale:v 2 {}".format(os.path.join("test",
-                    "abc_%03d.jpg"))),
+                    "abc_%04d.jpg"))),
          (os.path.join("abc.hevc"),27,None,"ffmpeg -r 27 -i"
                 " abc.hevc -qscale:v 2 {}".format(os.path.join("abc_Frames"
-                    ,"abc_%03d.jpg"))),
+                    ,"abc_%04d.jpg"))),
          (os.path.join(".","0.hevc"),20,"pla","ffmpeg -r 20 -i"
                 " {} -qscale:v 2 {}".format(os.path.join(".",
                     "0.hevc")
-                    ,os.path.join(".","pla","0_%03d.jpg"))),
+                    ,os.path.join(".","pla","0_%04d.jpg"))),
          (os.path.join("home","0.hevc"),10,"0_Frame","ffmpeg -r 10 -i"
                 " {} -qscale:v 2 {}".format(os.path.join("home",
-                    "0.hevc"),os.path.join("home","0_Frame","0_%03d.jpg")))
+                    "0.hevc"),os.path.join("home","0_Frame","0_%04d.jpg")))
          ])
 def test_gen_ffmpeg_command(ip_file_path,fps,op_dir,outcome):
     f_com = gen_ffmpeg_command(ip_file_path,fps,op_dir)
