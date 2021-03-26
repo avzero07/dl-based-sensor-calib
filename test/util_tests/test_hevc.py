@@ -9,8 +9,7 @@ import os
 import sys
 
 # TODO: Currently assumes that pytest runs from project root
-sys.path.append(os.path.join("util"))
-from hevc import gen_ffmpeg_command,run_ffmpeg,get_time_string,create_op_dir
+from util.hevc import gen_ffmpeg_command,run_ffmpeg,get_time_string,create_op_dir
 
 @pytest.mark.parametrize(
         "ip_file_path,fps,op_dir,outcome",
