@@ -59,6 +59,10 @@ class CarDataset(torch.utils.data.Dataset):
             # If File Exists, Read into self.label_frames
             working_frame = pd.read_csv(label_file,sep=' ',names=['pitch','yaw'])
             #TODO: Dealing with NaN should happen around here
+            '''
+            Can't just drop NaN from the dataframe without reconciling
+            the image list.
+            '''
             self.label_frames.append(working_frame)
 
         # Run Validate To Catch any Error
@@ -118,6 +122,13 @@ class CarDataset(torch.utils.data.Dataset):
 
         raise DatasetError(("Index {} Out of Bounds in dataset of size"
                 " {}").format(idx,len(self)))
+
+    def drop_nan(self):
+        '''
+        Labelframes may contain NaN values. Rows with NaN should be
+        dropped. Corresponding images should also be discarded.
+        '''
+        pass
 
 class DatasetError(Exception):
     def __init__(self,message="Problem loading data!"):
