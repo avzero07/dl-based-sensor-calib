@@ -73,7 +73,7 @@ class CarDataset(torch.utils.data.Dataset):
 
         # Read Image
         image = Image.open(self.image_locations[folder_idx][sub_idx])
-        image = ToTensor()(image).unsqueeze(0)
+        image = ToTensor()(image)
         # Retrieve Label
         angles = self.label_frames[folder_idx].iloc[sub_idx].values
         angles = torch.tensor(angles)

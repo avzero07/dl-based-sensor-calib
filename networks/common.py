@@ -2,8 +2,46 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-def train_net(network,dataset_obj,epoch_count,device):
-    pass
+def run_training(network,train_dataset_loader,epochs,device):
+    network.train()
+    for batch_idx, sample in enumerate(train_dataset_loader):
+        data = sample['image']
+        target = sample['angles']
+        data, target = data.to(device), target.to(device)
+        network.optimizer.zero_grad()
+        output = network(data)
+        loss = (F.mse_loss(output,target)) #TODO: NaN in data
+        loss.backward()
+        network.optimizer.step()
+        if batch_idx%10 == 0:
+            print("Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss:"
+                  " {:.6f}".format(epoch_count, batch_idx*len(data),
+                  len(dataset_loader.dataset),100.*batch_idx/len(dataset_loader),
+                  loss.item()))
+
+def run_inference(network,test_dataset_loader,device):
+    network.eval()
+    test_loss = 0
+    correct = 0
+
+    with torch.no_grad():
+        for sample in test_dataset_loader:
+            data = sample['image']
+            target = sample['angles']
+            data, target = data.to(device), target.to(device)
+            output = network(data)
+            test_loss += F.mse_loss(output,target).item()
+            pred = output
+
+    test_loss_average = test_loss/len(test_dataset_loader.dataset)
+    print("Test Set Average Loss {:.4f}".format(test_loss))
+
+def get_device():
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+    return device
 
 # Functions to Do CNN Size Math
 def get_conv_output_size(ip_height,ip_width,ip_channels,

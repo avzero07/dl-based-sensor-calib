@@ -11,9 +11,11 @@ import os
 
 from PIL import Image
 from torch import nn as nn
+from torch import Generator
+from torch.utils.data import random_split,DataLoader
 # TODO: Currently assumes that pytest runs from project root
 from util.car_dataset import check_dir, check_file, CarDataset, DatasetError
-from networks.common import NetworkError, get_conv_output_size, get_layer_param
+from networks.common import *
 from networks.CNNbase import CNNBasic
 
 # Helpers
@@ -69,7 +71,18 @@ def loaded_dataset(temp_dir):
 
 @pytest.fixture(scope="module")
 def network():
-    yield CNNBasic()
+    network = CNNBasic()
+    network = network.to(get_device())
+    yield network
+
+@pytest.fixture(scope="module")
+def dataset_loader(loaded_dataset):
+    length = len(loaded_dataset)
+    split_set = random_split(loaded_dataset,[int(0.8*length)
+                ,int(0.2*length)],generator=Generator().manual_seed(42))
+    train_loader = DataLoader(split_set[0],batch_size=100)
+    test_loader = DataLoader(split_set[1],batch_size=100)
+    yield (train_loader,test_loader)
 
 # Start Tests
 
@@ -109,8 +122,13 @@ def test_network_init(temp_dir,loaded_dataset):
 
 def test_network_forward_pass(loaded_dataset,network):
     item = loaded_dataset[1202]
-    image = item['image']
+    image = item['image'].unsqueeze(0) #batch size 1
     angles = item['angles']
-    angles_predicted = network(image)
+    angles_predicted = network(image.to(get_device()))
 
     print("Predicted = {}\nActual = {}".format(angles_predicted,angles))
+
+def test_train(network,dataset_loader):
+    train = dataset_loader[0]
+    print("Start Training")
+    run_training(network,train,1,get_device())
