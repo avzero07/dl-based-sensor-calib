@@ -155,3 +155,58 @@ def test_cardataset_get_item_value_images(temp_dir,loaded_dataset,index,outcome)
     image_expected = Image.open(os.path.join(temp_dir,outcome))
 
     assert image_retr == image_expected, ("Images Are Not the same!!")
+
+def test_nan_removal(loaded_dataset):
+    cur_length = len(loaded_dataset)
+    loaded_dataset.drop_nan()
+    new_length = len(loaded_dataset)
+    assert new_length == 2054, ("Original Length = {}\nNew Length = "
+        "{}\nExpected New Length = 2054".format(cur_length,new_length))
+
+@pytest.mark.parametrize(
+        "index,outcome",[
+        (0,True),
+        (1199,True),
+        (1200,True),
+        (1201,True),
+        (2053,True),
+        (2054,False),
+        (2399,False),
+        (2400,False),
+        (-1,False)])
+def test_after_nan_cardataset_get_item_index(loaded_dataset,index,outcome):
+    try:
+        item = loaded_dataset[index]
+    except DatasetError as e:
+        assert not outcome, "Got Error {}".format(e.message)
+
+@pytest.mark.parametrize(
+        "index,outcome",[
+        (0,[3.346066188150387949e-02, 3.149205029088487234e-02]),
+        (1199,[3.376331391075349658e-02, 3.256499232905601254e-02]),
+        (1200,[2.162449375247458075e-02, 2.197126520637055977e-02]),
+        (1201,[2.167494525873153027e-02, 2.196024970631171858e-02]),
+        (2053,[2.761138162404873017e-02, 2.093151905506832750e-02])])
+def test_after_nan_cardataset_get_item_value_angles(loaded_dataset,index,outcome):
+    item = loaded_dataset[index]
+    angles = item['angles']
+
+    pitch_retr = round(angles[0].item(),4)
+    pitch_expected = round(outcome[0],4)
+    assert pitch_retr == pitch_expected, ("Pitch Mismatch, Expected "
+        "{}, Got {}".format(pitch_expected,pitch_retr))
+
+@pytest.mark.parametrize(
+        "index,outcome",[
+        (0,os.path.join("0_Frames","0_0001.jpg")),
+        (1199,os.path.join("0_Frames","0_1200.jpg")),
+        (1200,os.path.join("3_Frames","3_0001.jpg")),
+        (1201,os.path.join("3_Frames","3_0002.jpg")),
+        (2053,os.path.join("3_Frames","3_1200.jpg"))])
+def test_after_nan_cardataset_get_item_value_images(temp_dir,loaded_dataset,index,outcome):
+    item = loaded_dataset[index]
+    image_retr = item['image']
+    print(os.listdir())
+    image_expected = Image.open(os.path.join(temp_dir,outcome))
+
+    assert image_retr == image_expected, ("Images Are Not the same!!")
