@@ -66,6 +66,7 @@ def loaded_dataset(temp_dir):
     image_folder_list = ['0_Frames','3_Frames']
     label_file_list = ['0.txt','3.txt']
     car_data = CarDataset(temp_dir,image_folder_list,label_file_list)
+    car_data.drop_nan()
 
     yield car_data
 
@@ -73,15 +74,16 @@ def loaded_dataset(temp_dir):
 def network():
     network = CNNBasic()
     network = network.to(get_device())
+    network.double()
     yield network
 
 @pytest.fixture(scope="module")
 def dataset_loader(loaded_dataset):
     length = len(loaded_dataset)
-    split_set = random_split(loaded_dataset,[int(0.8*length)
-                ,int(0.2*length)],generator=Generator().manual_seed(42))
-    train_loader = DataLoader(split_set[0],batch_size=100)
-    test_loader = DataLoader(split_set[1],batch_size=100)
+    split_set = random_split(loaded_dataset,[round(0.8*length)
+                ,round(0.2*length)],generator=Generator().manual_seed(42))
+    train_loader = DataLoader(split_set[0],batch_size=30)
+    test_loader = DataLoader(split_set[1],batch_size=30)
     yield (train_loader,test_loader)
 
 # Start Tests
@@ -122,8 +124,8 @@ def test_network_init(temp_dir,loaded_dataset):
 
 def test_network_forward_pass(loaded_dataset,network):
     item = loaded_dataset[1202]
-    image = item['image'].unsqueeze(0) #batch size 1
-    angles = item['angles']
+    image = (item['image'].unsqueeze(0)).double() #batch size 1
+    angles = (item['angles']).double()
     angles_predicted = network(image.to(get_device()))
 
     print("Predicted = {}\nActual = {}".format(angles_predicted,angles))
@@ -132,3 +134,8 @@ def test_train(network,dataset_loader):
     train = dataset_loader[0]
     print("Start Training")
     run_training(network,train,1,get_device())
+
+def test_inference(network,dataset_loader):
+    test = dataset_loader[1]
+    print("Start Inference")
+    run_inference(network,test,get_device())
