@@ -80,10 +80,15 @@ def network():
 @pytest.fixture(scope="module")
 def dataset_loader(loaded_dataset):
     length = len(loaded_dataset)
-    split_set = random_split(loaded_dataset,[round(0.8*length)
-                ,round(0.2*length)],generator=Generator().manual_seed(42))
-    train_loader = DataLoader(split_set[0],batch_size=30)
-    test_loader = DataLoader(split_set[1],batch_size=30)
+    split_set = random_split(loaded_dataset,[round(0.995*length)
+                ,round(0.005*length)],generator=Generator().manual_seed(42))
+    train_loader = DataLoader(split_set[1],batch_size=5)
+    test_loader = DataLoader(split_set[1],batch_size=5)
+    '''
+    Lowering values to sane levels to help run tests on github
+    runners. Ideally on local GPU (4GB) 80/20 split with batch size of
+    30 works well.
+    '''
     yield (train_loader,test_loader)
 
 # Start Tests

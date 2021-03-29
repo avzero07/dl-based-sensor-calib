@@ -56,6 +56,9 @@ def get_layer_param(ip_height,ip_width,ip_channels,layer):
     stride = get_value_from_obj(layer.stride)
     try:
         out_channels = layer.out_channels
+
+    except AttributeError:
+        out_channels = ip_channels
     except torch.nn.modules.module.ModuleAttributeError:
         out_channels = ip_channels
 

@@ -209,5 +209,6 @@ def test_after_nan_cardataset_get_item_value_images(temp_dir,loaded_dataset,inde
     image_retr = item['image']
     print(os.listdir())
     image_expected = Image.open(os.path.join(temp_dir,outcome))
+    image_expected = ToTensor()(image_expected).unsqueeze(0)
 
-    assert image_retr == image_expected, ("Images Are Not the same!!")
+    assert torch.all(torch.eq(image_retr,image_expected)), ("Images Are Not the same!!")
