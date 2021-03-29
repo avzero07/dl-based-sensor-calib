@@ -9,12 +9,13 @@ import shutil
 import subprocess as sp
 import os
 import sys
+import torch
 
 from PIL import Image
+from torchvision.transforms import ToTensor
 
 # TODO: Currently assumes that pytest runs from project root
-sys.path.append(os.path.join("util"))
-from car_dataset import check_dir, check_file, CarDataset, DatasetError
+from util.car_dataset import check_dir, check_file, CarDataset, DatasetError
 
 # Helpers
 
@@ -151,10 +152,10 @@ def test_cardataset_get_item_value_angles(loaded_dataset,index,outcome):
 def test_cardataset_get_item_value_images(temp_dir,loaded_dataset,index,outcome):
     item = loaded_dataset[index]
     image_retr = item['image']
-    print(os.listdir())
     image_expected = Image.open(os.path.join(temp_dir,outcome))
+    image_expected = ToTensor()(image_expected).unsqueeze(0)
 
-    assert image_retr == image_expected, ("Images Are Not the same!!")
+    assert torch.all(torch.eq(image_retr,image_expected)), ("Images Are Not the same!!")
 
 def test_nan_removal(loaded_dataset):
     cur_length = len(loaded_dataset)
@@ -208,5 +209,6 @@ def test_after_nan_cardataset_get_item_value_images(temp_dir,loaded_dataset,inde
     image_retr = item['image']
     print(os.listdir())
     image_expected = Image.open(os.path.join(temp_dir,outcome))
+    image_expected = ToTensor()(image_expected).unsqueeze(0)
 
-    assert image_retr == image_expected, ("Images Are Not the same!!")
+    assert torch.all(torch.eq(image_retr,image_expected)), ("Images Are Not the same!!")

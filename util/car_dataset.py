@@ -8,6 +8,7 @@ import torch
 import pandas as pd
 import numpy as np
 from PIL import Image
+from torchvision.transforms import ToTensor
 
 def check_dir(dir_path):
     if not os.path.isdir(dir_path):
@@ -77,6 +78,7 @@ class CarDataset(torch.utils.data.Dataset):
 
         # Read Image
         image = Image.open(self.image_locations[folder_idx][sub_idx])
+        image = ToTensor()(image)
         # Retrieve Label
         angles = self.label_frames[folder_idx].iloc[sub_idx].values
         angles = torch.tensor(angles)
