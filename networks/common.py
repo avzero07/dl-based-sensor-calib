@@ -1,21 +1,31 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from tqdm import tqdm
 
 def run_training(network,train_dataset_loader,epochs,device):
     network.train()
-    for batch_idx, sample in enumerate(train_dataset_loader):
-        data = (sample['image']).double()
-        target = (sample['angles']).double()
-        data, target = data.to(device), target.to(device)
-        network.optimizer.zero_grad()
-        output = network(data)
-        loss = (F.mse_loss(output,target))
-        loss.backward()
-        network.optimizer.step()
-        if batch_idx%10 == 0:
-            print("Train Epoch: {}\tBatch: {}\tLoss:"
-                  " {:.6f}".format(epochs,batch_idx,loss.item()))
+    for epoch in range(epochs):
+        loss_over_epoch = []
+        for batch_idx, sample in tqdm(enumerate(train_dataset_loader)):
+            data = (sample['image']).double()
+            target = (sample['angles']).double()
+            data, target = data.to(device), target.to(device)
+            network.optimizer.zero_grad()
+            output = network(data)
+            loss = (F.mse_loss(output,target))
+            loss_over_epoch.append(loss.item())
+            loss.backward()
+            network.optimizer.step()
+
+            '''
+            if batch_idx%10 == 0:
+                print("Train Epoch: {}\tBatch: {}\tLoss:"
+                      " {:.6f}".format(epoch,batch_idx,loss.item()))
+            '''
+        mean_train_loss = torch.mean(torch.tensor(loss_over_epoch)).item()
+        print("Train Epoch: {}\tMean Loss:"
+              " {:.6f}".format(epoch,mean_train_loss))
 
 def run_inference(network,test_dataset_loader,device):
     network.eval()
