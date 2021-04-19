@@ -33,14 +33,17 @@ def run_inference(network,test_dataset_loader,device):
     correct = 0
 
     with torch.no_grad():
+        num = 0
         for sample in test_dataset_loader:
+            num+=1
             data = (sample['image']).double()
             target = (sample['angles']).double()
             data, target = data.to(device), target.to(device)
             output = network(data)
             test_loss += F.mse_loss(output,target).item()
             pred = output
-
+    
+    print("Num = {}\nLen = {}".format(num,len(test_dataset_loader.dataset)))
     test_loss_average = test_loss/len(test_dataset_loader.dataset)
     print("Test Set Average Loss {:.4f}".format(test_loss))
 
