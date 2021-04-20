@@ -29,6 +29,9 @@ def run_training(network,train_dataset_loader,epochs,device):
         print("Train Epoch: {}\tMean Loss:"
               " {:.6f}".format(epoch,mean_train_loss))
         loss_over_training.append(mean_train_loss)
+        if (epoch%10 == 0):
+            save_model(epoch,network.state_dict(),network.optimizer.state_dict(),
+                    mean_train_loss)
     return loss_over_training
 
 def run_inference(network,test_dataset_loader,device):
