@@ -49,10 +49,41 @@ def run_inference(network,test_dataset_loader,device):
             output = network(data)
             test_loss += F.mse_loss(output,target).item()
             pred = output
-    
+
     print("Num = {}\nLen = {}".format(num,len(test_dataset_loader.dataset)))
     test_loss_average = test_loss/len(test_dataset_loader.dataset)
     print("Test Set Average Loss {:.4f}".format(test_loss))
+
+def run_inference_single(network,sample,device):
+    '''
+    The sample passed in as input is supposed to be a single
+    sample from the DataSet Class.
+    '''
+    network.eval()
+    test_loss = 0
+    correct = 0
+
+    # Unsqueeze to account for Batch Dimension
+    sample['image'] = torch.unsqueeze(sample['image'],0)
+    sample['angles'] = torch.unsqueeze(sample['angles'],0)
+
+    with torch.no_grad():
+        num = 0
+        num+=1
+        data = (sample['image']).double()
+        target = (sample['angles']).double()
+        data, target = data.to(device), target.to(device)
+        output = network(data)
+        test_loss += F.mse_loss(output,target).item()
+        pred = output
+
+    print("Num = {}\nLen = {}".format(num,1))
+    test_loss_average = test_loss/1
+    print("Test Set Average Loss {:.4f}".format(test_loss))
+
+    print("Real = {}".format(target))
+    print("Pred = {}".format(output))
+    return output
 
 def get_device():
     if torch.cuda.is_available():

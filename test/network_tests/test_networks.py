@@ -240,3 +240,8 @@ def test_inference(network,dataset_loader):
     test = dataset_loader[1]
     print("Start Inference")
     run_inference(network,test,get_device())
+
+def test_single_sample_inference(network,loaded_dataset):
+    sample = loaded_dataset[0]
+    out = run_inference_single(network,sample,get_device())
+    assert out != None, "No Output from Model!"
