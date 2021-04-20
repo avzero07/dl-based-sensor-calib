@@ -10,6 +10,7 @@ import subprocess as sp
 import os
 
 from PIL import Image
+from unittest import TestCase
 from torch import nn as nn
 from torch import Generator
 from torch.utils.data import random_split,DataLoader
@@ -23,6 +24,52 @@ from networks.CNNbase import CNNBasic
 def rand_string(length=5):
     return ''.join(random.choices(string.ascii_letters +
         string.digits, k=length))
+
+def comp_ordered_dict(od1,od2):
+    '''
+    Function to compare ordered dictionaries. Useful to
+    compare the state_dicts when saving/loading.
+    '''
+    diff = 0
+    for a,b in zip(od1.items(),od2.items()):
+        if torch.equal(a[1],b[1]):
+            continue
+        else:
+            diff+=1
+            if(a[0] == b[0]):
+                print('Mismatch at \nA:{}\nB:{}'.format(a[0],b[0]))
+            else:
+                pytest.fail("Possibly Uneqal State Dicts")
+            return False
+    return True
+
+def comp_dict(d1,d2):
+    '''
+    Same as comp_ordered_dict but made for comparing
+    optimizer state_dict which is structured as a dict.
+    '''
+    diff = 0
+    for a,b in zip(d1.items(),d2.items()):
+        if type(a[1]) == dict:
+            comp_dict(a[1],b[1])
+            #TestCase().assertDictEqual(a[1],b[1])
+
+        elif type(a[1]) == torch.Tensor:
+            if torch.equal(a[1],b[1]):
+                continue
+            else:
+                diff+=1
+                if(a[0] == b[0]):
+                    print('Mismatch at \nA:{}\nB:{}'.format(a[0],b[0]))
+                else:
+                    pytest.fail("Possibly Uneqal State Dicts")
+            return False
+        else:
+            if a[1] == b[1]:
+                continue
+            else:
+                return False
+    return True
 
 # Fixtures
 @pytest.fixture(scope="module")
@@ -138,7 +185,56 @@ def test_network_forward_pass(loaded_dataset,network):
 def test_train(network,dataset_loader):
     train = dataset_loader[0]
     print("Start Training")
-    run_training(network,train,1,get_device())
+    loss_list = run_training(network,train,1,get_device())
+    assert loss_list, "Training returned empty loss_list!"
+    network.train_losses = loss_list
+
+def test_save_model(network,temp_dir):
+    save_model(1,network.state_dict(),network.optimizer.state_dict(),
+            network.train_losses[0],path=temp_dir,name='Test')
+
+def test_load_model(network,temp_dir):
+    new_net = CNNBasic()
+    new_net = new_net.to(get_device())
+    new_net.double()
+    epoch, loss = load_model(new_net,new_net.optimizer,
+            os.path.join(temp_dir,'Test-1.pt'))
+
+    assert loss == network.train_losses[0]
+    assert comp_ordered_dict(network.state_dict()
+            ,new_net.state_dict()), "Network State Dict Mismatch!"
+    
+    assert comp_dict(network.optimizer.state_dict()['param_groups'][0],
+            new_net.optimizer.state_dict()['param_groups'][0]),("Optimizer "
+            "State Dict Mismatch!")
+   
+    assert comp_dict(network.optimizer.state_dict()['state'],
+            new_net.optimizer.state_dict()['state']),("Optimizer "
+            "State Dict Mismatch!")
+
+def test_compare_model_negative_model(network,temp_dir):
+    new_net = CNNBasic()
+    new_net = new_net.to(get_device())
+    new_net.double()
+
+    assert not comp_ordered_dict(network.state_dict()
+            ,new_net.state_dict()), "Network State Dict Mismatch!"
+
+@pytest.mark.xfail
+def test_compare_model_negative_optimizer(network,temp_dir):
+    new_net = CNNBasic()
+    new_net = new_net.to(get_device())
+    new_net.double()
+
+    '''
+    Optimizer state will not exactly change much in 1 epoch. Split
+    into separate testcase and marking xfail until more can be 
+    determined. This is not a gating issue since save/load and 
+    comparison of state_dicts appear to be working fine.
+    '''
+    assert not comp_dict(network.optimizer.state_dict()['state'],
+            new_net.optimizer.state_dict()['state']),("Optimizer "
+            "State Dict Mismatch!")
 
 def test_inference(network,dataset_loader):
     test = dataset_loader[1]

@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,6 +6,7 @@ from tqdm import tqdm
 
 def run_training(network,train_dataset_loader,epochs,device):
     network.train()
+    loss_over_training = []
     for epoch in range(epochs):
         loss_over_epoch = []
         for batch_idx, sample in tqdm(enumerate(train_dataset_loader)):
@@ -26,6 +28,8 @@ def run_training(network,train_dataset_loader,epochs,device):
         mean_train_loss = torch.mean(torch.tensor(loss_over_epoch)).item()
         print("Train Epoch: {}\tMean Loss:"
               " {:.6f}".format(epoch,mean_train_loss))
+        loss_over_training.append(mean_train_loss)
+    return loss_over_training
 
 def run_inference(network,test_dataset_loader,device):
     network.eval()
@@ -53,6 +57,37 @@ def get_device():
     else:
         device = "cpu"
     return device
+
+# Functions to Save and Load Model Checkpoints
+def save_model(epoch,model_state_dict,optimizer_state_dict,loss,path=os.getcwd(),
+        name='checkpoint'):
+    '''
+    Wrapper function for the torch save function. This will call the
+    version of save that saves the entire model for general checkpoint
+    backup, inference and the resume training.
+    '''
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model_state_dict,
+        'optimizer_state_dict': optimizer_state_dict,
+        'loss': loss},
+        os.path.join(path,'{}-{}.pt'.format(name,epoch)))
+
+def load_model(new_model,new_optimizer,path_to_checkpoint):
+    '''
+    Wrapper function to simplify the use of torch load. Pass in the newly
+    initialized model and optimizer and this function will take care of the
+    rest.
+
+    NOTE: After this call finishes, make sure to call model.eval() or
+    model.train() depedning on inference / training.
+    '''
+    checkpoint_dict = torch.load(path_to_checkpoint,map_location=get_device())
+    new_model.load_state_dict(checkpoint_dict['model_state_dict'])
+    new_optimizer.load_state_dict(checkpoint_dict['optimizer_state_dict'])
+    epoch = checkpoint_dict['epoch']
+    loss = checkpoint_dict['loss']
+    return epoch, loss
 
 # Functions to Do CNN Size Math
 def get_conv_output_size(ip_height,ip_width,ip_channels,
