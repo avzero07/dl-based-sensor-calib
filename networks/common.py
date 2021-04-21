@@ -141,6 +141,20 @@ def get_conv_output_size(ip_height,ip_width,ip_channels,
     op_channels = filters
     return (op_height,op_width,op_channels)
 
+def get_cascaded_output_size(ip_dim,conv_layer_dim_list):
+    '''
+    Uses the function above to return the size of the
+    first dense layer after a series of Conv2d layers.
+    
+    conv_layer_dim_list contents should be of the form
+    [filter,kernel,stride,padding]
+    '''
+    op = (ip_dim[2],ip_dim[1],ip_dim[0])
+    for item in conv_layer_dim_list:
+        op = get_conv_output_size(op[0],op[1],op[2],item[1],
+                item[3],item[2],item[0])
+    return op[0]*op[1]*op[2]
+
 def get_layer_param(ip_height,ip_width,ip_channels,layer):
     kernel = get_value_from_obj(layer.kernel_size)
     padding = get_value_from_obj(layer.padding)
