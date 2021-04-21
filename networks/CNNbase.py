@@ -5,7 +5,7 @@ import torch.optim as optim
 
 class CNNBasic(nn.Module):
 
-    def __init__(self):
+    def __init__(self,alpha=0):
         '''
         Define various layers used in the CNN. Not necessarily in
         order.
@@ -20,7 +20,7 @@ class CNNBasic(nn.Module):
         self.mlp1 = nn.Linear(9856,128) # TODO: Determine actual size
         self.mlp2 = nn.Linear(128,2)
 
-        self.optimizer = optim.Adadelta(self.parameters(),lr=0.01)
+        self.optimizer = optim.Adadelta(self.parameters(),lr=0.01,weight_decay=alpha)
 
     def forward(self,X):
         '''
