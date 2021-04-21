@@ -1,10 +1,12 @@
 import os
+import pickle
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-def run_training(network,train_dataset_loader,test_dataset_loader,epochs,device):
+def run_training(network,train_dataset_loader,test_dataset_loader,epochs,device,
+        path=os.getcwd(),name='checkpoint',checkpoint_freq=10):
     loss_over_training = []
     loss_over_test = []
     for epoch in range(epochs):
@@ -34,9 +36,9 @@ def run_training(network,train_dataset_loader,test_dataset_loader,epochs,device)
         print("Train Epoch: {}\tTrain Loss:"
                 " {:.6f} Test Loss:{:.6f}".format(epoch,epoch_loss_total_train,
                     epoch_loss_total_test))
-        if (epoch%10 == 0):
+        if (epoch%checkpoint_freq == 0):
             save_model(epoch,network.state_dict(),network.optimizer.state_dict(),
-                    epoch_loss_total_train)
+                    epoch_loss_total_train,path=path,name=name)
 
     return loss_over_training, loss_over_test
 
@@ -163,6 +165,17 @@ def get_value_from_obj(obj,index=0):
         return obj[index]
     else:
         return obj
+
+# Utility Functions for Storing Stats
+
+def save_stats(obj,new_file_path):
+    with open(new_file_path,"wb+") as fp:
+        pickle.dump(obj,fp)
+
+def load_stats(path_to_file):
+    with open(path_to_file,"rb") as fp:
+        out = pickle.load(fp)
+    return out
 
 class NetworkError(Exception):
     def __init__(self,message="Network Related Error!"):
