@@ -185,7 +185,7 @@ def test_network_forward_pass(loaded_dataset,network):
 def test_train(network,dataset_loader):
     train = dataset_loader[0]
     print("Start Training")
-    loss_list = run_training(network,train,1,get_device())
+    loss_list = run_training(network,train,dataset_loader[1],1,get_device())
     assert loss_list, "Training returned empty loss_list!"
     network.train_losses = loss_list
 
