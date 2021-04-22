@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 def run_training(network,train_dataset_loader,test_dataset_loader,epochs,device,
-        path=os.getcwd(),name='checkpoint',checkpoint_freq=10):
+        path=os.getcwd(),name='checkpoint',checkpoint_freq=10,dataset=None):
     loss_over_training = []
     loss_over_test = []
     for epoch in range(epochs):
@@ -31,7 +31,8 @@ def run_training(network,train_dataset_loader,test_dataset_loader,epochs,device,
         epoch_loss_total_train = epoch_loss / (len(train_dataset_loader.dataset))
         loss_over_training.append(epoch_loss_total_train)
         
-        epoch_loss_total_test = run_inference(network,test_dataset_loader,device)
+        epoch_loss_total_test = run_inference(network,test_dataset_loader,device
+                ,dataset=dataset)
         loss_over_test.append(epoch_loss_total_test)
         print("Train Epoch: {}\tTrain Loss:"
                 " {:.6f} Test Loss:{:.6f}".format(epoch,epoch_loss_total_train,
@@ -42,8 +43,11 @@ def run_training(network,train_dataset_loader,test_dataset_loader,epochs,device,
 
     return loss_over_training, loss_over_test
 
-def run_inference(network,test_dataset_loader,device):
+def run_inference(network,test_dataset_loader,device,dataset=None):
     network.eval()
+    if dataset:
+        dataset.mode = 'eval'
+        print('Setting Dataset Mode to {}'.format(dataset.mode))
     test_loss = 0
     correct = 0
 
@@ -61,6 +65,10 @@ def run_inference(network,test_dataset_loader,device):
     print("Num = {}\nLen = {}".format(num,len(test_dataset_loader.dataset)))
     test_loss_average = test_loss/len(test_dataset_loader.dataset)
     print("Test Set Average Loss {:.6f}".format(test_loss_average))
+    
+    if dataset:
+        dataset.mode = 'train'
+        print('Setting Dataset Mode to {}'.format(dataset.mode))
     return test_loss_average
 
 def run_inference_single(network,sample,device):

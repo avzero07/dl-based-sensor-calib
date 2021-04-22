@@ -27,11 +27,13 @@ class CarDataset(torch.utils.data.Dataset):
     '''
 
     def __init__(self, root_dir, image_folder_list, label_file_list,
-            transform=None):
+            transform=None,augment=None):
         # Initialize Attributes
         self.image_locations = list() # List of lists
         self.label_frames = list() # List of lists
         self.transform = transform
+        self.augment = augment
+        self.mode = 'train'
 
         # Check if the root_dir exists
         check_dir(root_dir)
@@ -84,6 +86,8 @@ class CarDataset(torch.utils.data.Dataset):
         image = ToTensor()(image)
         if self.transform:
             image = perform_transform(self.transform,image)
+        if self.augment and self.mode == 'train':
+            image = perform_augment(self.augment,image)
         # Retrieve Label
         angles = self.label_frames[folder_idx].iloc[sub_idx].values
         angles = torch.tensor(angles)
@@ -212,8 +216,19 @@ def perform_augment(augment_list,image):
     Similar to transformation but this is to perform
     random augmentation useful for training. Should
     not be called in eval mode.
+
+    raff -> random_affine (vert and horiz translations)
+    rer  -> random_erase
     '''
-    pass
+    if 'raff' in augment_list:
+        tf = transforms.RandomAffine(0,translate=(0.05,0.05))
+        image = tf(image)
+
+    if 'rer' in augment_list:
+        tf = transforms.RandomErasing(scale=(0.02,0.05),ratio=(0.02,0.2))
+        image = tf(image)
+
+    return image
 
 class DatasetError(Exception):
     def __init__(self,message="Problem loading data!"):
