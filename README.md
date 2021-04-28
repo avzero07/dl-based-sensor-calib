@@ -13,12 +13,13 @@ using a package manager or some other way (Windows).
 
 1. ffmpeg
 
-(ffmpeg is an optional dependency and not necessary to runthe demo notebook)
+(ffmpeg is an optional dependency and not necessary to run the demo notebook)
 
 ## Demo
 
 After installing the python dependencies, the notebook titled "Demo-Notebook.ipynb"
-can be executed.
+can be executed. This notebook is configured to load the trained "Composite" model
+and can run inference on individual image from the Test dataset.
 
 ## Other Notebooks
 
