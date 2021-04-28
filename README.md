@@ -1,4 +1,4 @@
-# dl-based-sensor-calib
+# Predicting Direction of Vehicular Motion
 
 The project requires the following dependencies to
 be installed in your system.
@@ -6,7 +6,7 @@ be installed in your system.
 Python dependencies are specified in the requirements
 file in this directory and can be set up using
 
-pip install -r deps/requirements.txt
+<pre>pip install -r deps/requirements.txt</pre>
 
 Other dependencies will need to be set up. Either
 using a package manager or some other way (Windows).
