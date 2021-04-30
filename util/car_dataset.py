@@ -8,6 +8,7 @@ import torch
 import pandas as pd
 import numpy as np
 from PIL import Image
+from torchvision import transforms, utils
 from torchvision.transforms import ToTensor
 
 def check_dir(dir_path):
@@ -25,10 +26,14 @@ class CarDataset(torch.utils.data.Dataset):
     angles.
     '''
 
-    def __init__(self, root_dir, image_folder_list, label_file_list):
+    def __init__(self, root_dir, image_folder_list, label_file_list,
+            transform=None,augment=None):
         # Initialize Attributes
         self.image_locations = list() # List of lists
         self.label_frames = list() # List of lists
+        self.transform = transform
+        self.augment = augment
+        self.mode = 'train'
 
         # Check if the root_dir exists
         check_dir(root_dir)
@@ -79,6 +84,10 @@ class CarDataset(torch.utils.data.Dataset):
         # Read Image
         image = Image.open(self.image_locations[folder_idx][sub_idx])
         image = ToTensor()(image)
+        if self.transform:
+            image = perform_transform(self.transform,image)
+        if self.augment and self.mode == 'train':
+            image = perform_augment(self.augment,image)
         # Retrieve Label
         angles = self.label_frames[folder_idx].iloc[sub_idx].values
         angles = torch.tensor(angles)
@@ -161,6 +170,65 @@ class CarDataset(torch.utils.data.Dataset):
 
         self.image_locations = new_image_locations
         self.label_frames = new_label_frames
+
+def get_norm_param(image):
+    '''
+    Returns a list of per-channel mean and std
+    for the input image. Used to normalize the input.
+    '''
+    num_channels = image.size()[-3]
+    mean_list = list()
+    std_list = list()
+    for ch in range(num_channels):
+        mean_list.append(image[ch,:,:].mean().item())
+        std_list.append(image[ch,:,:].std().item())
+    return mean_list, std_list
+
+def perform_transform(transform_list,image):
+    '''
+    Transforms is a list of transforms that will be applied
+    sequentially on the input image.
+
+    Note that normalization will always be the last step.
+
+    Returns the modified image tensor back to caller.
+
+    eg: transform = ['gs','ccrop','norm']
+    '''
+    if 'ccrop' in transform_list:
+        c_crop_dim = [int(0.5*image.size()[-2]),image.size()[-1]]
+        tf = transforms.CenterCrop(c_crop_dim)
+        image = tf(image)
+
+    if 'gs' in transform_list:
+        tf = transforms.Grayscale(num_output_channels=1)
+        image = tf(image)
+
+    if 'norm' in transform_list:
+        mean_list, std_list = get_norm_param(image)
+        tf = transforms.Normalize(mean_list,std_list)
+        image = tf(image)
+
+    return image
+
+def perform_augment(augment_list,image):
+    '''
+    Similar to transformation but this is to perform
+    random augmentation useful for training. Should
+    not be called in eval mode.
+
+    raff -> random_affine (vert and horiz translations)
+    rer  -> random_erase
+    '''
+    if 'raff' in augment_list:
+        tf = transforms.RandomAffine(0,translate=(0.05,0.05))
+        image = tf(image)
+
+    if 'rer' in augment_list:
+        tf = transforms.RandomErasing(scale=(0.02,0.05),ratio=(0.02,0.2))
+        image = tf(image)
+
+    return image
 
 class DatasetError(Exception):
     def __init__(self,message="Problem loading data!"):
